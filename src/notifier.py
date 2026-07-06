@@ -1,10 +1,11 @@
-import json
 import logging
+import time
 import uuid
 
 import nats
 
 from src.config import settings
+from src.proto import email_pb2
 
 logger = logging.getLogger(__name__)
 
@@ -29,18 +30,18 @@ async def send_triage_report(alert_name: str, service: str, severity: str, repor
         logger.error("NATS not connected, cannot send triage report")
         return
 
-    payload = {
-        "id": str(uuid.uuid4()),
-        "type": "alert_triage_report",
-        "to": settings.alert_recipient_email,
-        "subject": f"[{severity.upper()}] Triage Report: {alert_name} ({service})",
-        "data": {
+    event = email_pb2.EmailEvent(
+        event_id=str(uuid.uuid4()),
+        type=email_pb2.ALERT_TRIAGE_REPORT,
+        recipient=settings.alert_recipient_email,
+        data={
             "alert_name": alert_name,
             "service": service,
             "severity": severity,
             "report": report,
         },
-    }
+        timestamp=int(time.time()),
+    )
 
-    await _nc.publish(settings.nats_mailer_subject, json.dumps(payload).encode())
+    await _nc.publish(settings.nats_mailer_subject, event.SerializeToString())
     logger.info("Triage report sent for alert=%s service=%s", alert_name, service)
