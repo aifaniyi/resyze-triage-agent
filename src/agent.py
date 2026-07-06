@@ -1,7 +1,7 @@
 import json
 import logging
 
-from langchain.agents import create_react_agent
+from langgraph.prebuilt import create_react_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
