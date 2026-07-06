@@ -84,4 +84,10 @@ async def investigate_alert(alert: dict) -> str:
     agent = create_react_agent(llm, tools)
     result = await agent.ainvoke({"messages": prompt})
 
-    return result["messages"][-1].content
+    content = result["messages"][-1].content
+    if isinstance(content, list):
+        return "\n".join(
+            block.get("text", "") if isinstance(block, dict) else str(block)
+            for block in content
+        )
+    return str(content)
