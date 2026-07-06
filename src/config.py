@@ -6,6 +6,7 @@ class Settings(BaseSettings):
 
     # Grafana MCP
     grafana_mcp_url: str = "http://grafana-mcp-server.resyze.svc.cluster.local:8080/sse"
+    grafana_mcp_api_key: str = ""
 
     # LLM
     llm_provider: str = "google"  # "google" or "openai"

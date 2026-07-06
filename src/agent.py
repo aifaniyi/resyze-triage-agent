@@ -61,6 +61,7 @@ async def investigate_alert(alert: dict) -> str:
             "grafana": {
                 "url": settings.grafana_mcp_url,
                 "transport": "sse",
+                "headers": {"Authorization": f"Bearer {settings.grafana_mcp_api_key}"},
             }
         }
     )
