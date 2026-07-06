@@ -56,15 +56,16 @@ def _get_llm():
 
 async def investigate_alert(alert: dict) -> str:
     """Run the triage agent to investigate an alert using Grafana MCP tools."""
-    async with MultiServerMCPClient(
+    mcp_client = MultiServerMCPClient(
         {
             "grafana": {
                 "url": settings.grafana_mcp_url,
                 "transport": "sse",
             }
         }
-    ) as mcp_client:
-        tools = mcp_client.get_tools()
+    )
+    try:
+        tools = await mcp_client.get_tools()
         llm = _get_llm()
 
         labels = alert.get("labels", {})
@@ -84,3 +85,5 @@ async def investigate_alert(alert: dict) -> str:
         result = await agent.ainvoke({"messages": prompt})
 
         return result["messages"][-1].content
+    finally:
+        await mcp_client.close()
