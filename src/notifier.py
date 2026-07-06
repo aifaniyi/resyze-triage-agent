@@ -34,14 +34,12 @@ async def send_triage_report(alert_name: str, service: str, severity: str, repor
         event_id=str(uuid.uuid4()),
         type=email_pb2.ALERT_TRIAGE_REPORT,
         recipient=settings.alert_recipient_email,
-        data={
-            "alert_name": alert_name,
-            "service": service,
-            "severity": severity,
-            "report": report,
-        },
         timestamp=int(time.time()),
     )
+    event.data["alert_name"] = alert_name
+    event.data["service"] = service
+    event.data["severity"] = severity
+    event.data["report"] = report
 
     await _nc.publish(settings.nats_mailer_subject, event.SerializeToString())
     logger.info("Triage report sent for alert=%s service=%s", alert_name, service)
