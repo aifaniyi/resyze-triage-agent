@@ -65,26 +65,23 @@ async def investigate_alert(alert: dict) -> str:
             }
         }
     )
-    try:
-        tools = await mcp_client.get_tools()
-        llm = _get_llm()
+    tools = await mcp_client.get_tools()
+    llm = _get_llm()
 
-        labels = alert.get("labels", {})
-        annotations = alert.get("annotations", {})
+    labels = alert.get("labels", {})
+    annotations = alert.get("annotations", {})
 
-        prompt = TRIAGE_PROMPT.format_messages(
-            alert_name=labels.get("alertname", "unknown"),
-            severity=labels.get("severity", "unknown"),
-            service=labels.get("service", "unknown"),
-            description=annotations.get("description", "No description"),
-            starts_at=alert.get("startsAt", "unknown"),
-            labels=json.dumps(labels),
-            agent_scratchpad=[],
-        )
+    prompt = TRIAGE_PROMPT.format_messages(
+        alert_name=labels.get("alertname", "unknown"),
+        severity=labels.get("severity", "unknown"),
+        service=labels.get("service", "unknown"),
+        description=annotations.get("description", "No description"),
+        starts_at=alert.get("startsAt", "unknown"),
+        labels=json.dumps(labels),
+        agent_scratchpad=[],
+    )
 
-        agent = create_react_agent(llm, tools)
-        result = await agent.ainvoke({"messages": prompt})
+    agent = create_react_agent(llm, tools)
+    result = await agent.ainvoke({"messages": prompt})
 
-        return result["messages"][-1].content
-    finally:
-        await mcp_client.close()
+    return result["messages"][-1].content

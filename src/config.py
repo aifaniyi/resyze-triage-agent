@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # LLM
     llm_provider: str = "google"  # "google" or "openai"
-    llm_model: str = "gemini-2.0-flash"
+    llm_model: str = "gemini-2.5-flash"
     llm_api_key: str = ""
 
     # NATS (for sending triage results to mailer)
