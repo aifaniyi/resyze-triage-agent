@@ -1,7 +1,7 @@
 import json
 import logging
 
-from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain.agents import create_react_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_mcp_adapters.client import MultiServerMCPClient
 
@@ -66,19 +66,21 @@ async def investigate_alert(alert: dict) -> str:
     ) as mcp_client:
         tools = mcp_client.get_tools()
         llm = _get_llm()
-        agent = create_tool_calling_agent(llm, tools, TRIAGE_PROMPT)
-        executor = AgentExecutor(agent=agent, tools=tools, verbose=True, max_iterations=10)
 
         labels = alert.get("labels", {})
         annotations = alert.get("annotations", {})
 
-        result = await executor.ainvoke({
-            "alert_name": labels.get("alertname", "unknown"),
-            "severity": labels.get("severity", "unknown"),
-            "service": labels.get("service", "unknown"),
-            "description": annotations.get("description", "No description"),
-            "starts_at": alert.get("startsAt", "unknown"),
-            "labels": json.dumps(labels),
-        })
+        prompt = TRIAGE_PROMPT.format_messages(
+            alert_name=labels.get("alertname", "unknown"),
+            severity=labels.get("severity", "unknown"),
+            service=labels.get("service", "unknown"),
+            description=annotations.get("description", "No description"),
+            starts_at=alert.get("startsAt", "unknown"),
+            labels=json.dumps(labels),
+            agent_scratchpad=[],
+        )
 
-        return result["output"]
+        agent = create_react_agent(llm, tools)
+        result = await agent.ainvoke({"messages": prompt})
+
+        return result["messages"][-1].content
